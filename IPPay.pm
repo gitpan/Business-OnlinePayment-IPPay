@@ -14,8 +14,8 @@ use Business::OnlinePayment::HTTPS;
 use vars qw($VERSION $DEBUG @ISA $me);
 
 @ISA = qw(Business::OnlinePayment::HTTPS);
-$VERSION = '0.01';
-$DEBUG = 1;
+$VERSION = '0.02';
+$DEBUG = 0;
 $me = 'Business::OnlinePayment::IPPay';
 
 sub set_defaults {
@@ -23,7 +23,7 @@ sub set_defaults {
     my %opts = @_;
 
     # standard B::OP methods/data
-    $self->server('test1.jetpay.com') unless $self->server;
+    $self->server('gateway17.jetpay.com') unless $self->server;
     $self->port('443') unless $self->port;
     $self->path('/jetpay') unless $self->path;
 
@@ -236,6 +236,17 @@ sub submit {
                           Country             => 'ship_country',
                           Phone               => 'ship_phone',
                         );
+
+  unless ( $type ne 'CC' || keys %shippingaddr ) {
+    tie %shippingaddr, 'Tie::IxHash',
+      $self->revmap_fields(
+                            Address             => 'address',
+                            City                => 'city',
+                            StateProv           => 'state',
+                            Country             => 'country',
+                            Phone               => 'phone',
+                          );
+  }
 
   tie my %shippinginfo, 'Tie::IxHash',
     $self->revmap_fields(

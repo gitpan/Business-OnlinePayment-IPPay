@@ -1,5 +1,10 @@
 Revision history for Perl extension Business::OnlinePayment::IPPay.
 
+0.02  Sun Jul  3 17:44:08 2008 PDT
+	- add live default server;
+	- send billing address as shipping address for card transactions
+          where no shipping address is provided
+
 0.01  Sun Jun 22 17:56:23 2008 EDT
 	- original version;
 
