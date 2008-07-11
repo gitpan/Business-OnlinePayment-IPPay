@@ -5,16 +5,12 @@ use Carp;
 use Tie::IxHash;
 use XML::Simple;
 use XML::Writer;
-use LWP::UserAgent;
-use HTTP::Request;
-use HTTP::Request::Common qw (POST);
-use Date::Calc qw(Add_Delta_YM Add_Delta_Days);
 use Business::OnlinePayment;
 use Business::OnlinePayment::HTTPS;
 use vars qw($VERSION $DEBUG @ISA $me);
 
 @ISA = qw(Business::OnlinePayment::HTTPS);
-$VERSION = '0.02';
+$VERSION = '0.03';
 $DEBUG = 0;
 $me = 'Business::OnlinePayment::IPPay';
 
@@ -191,9 +187,20 @@ sub submit {
 
   $self->required_fields(@required_fields);
 
+  if ($self->test_transaction()) {
+    $self->server('test1.jetpay.com');
+    $self->port('443');
+    $self->path('/jetpay');
+  }
+
   my $transaction_id = $content{'order_number'};
   unless ($transaction_id) {
     my ($page, $server_response, %headers) = $self->https_get('dummy' => 1);
+    warn "fetched transaction id: (HTTPS response: $server_response) ".
+         "(HTTPS headers: ".
+         join(", ", map { "$_ => ". $headers{$_} } keys %headers ). ") ".
+         "(Raw HTTPS content: $page)"
+      if $DEBUG;
     return unless $server_response=~ /^200/;
     $transaction_id = $page;
   }
@@ -314,12 +321,6 @@ sub submit {
   }
   $writer->endTag('JetPay');
   $writer->end();
-
-  if ($self->test_transaction()) {
-    $self->server('test1.jetpay.com');
-    $self->port('443');
-    $self->path('/jetpay');
-  }
 
   warn "$post_data\n" if $DEBUG;
 

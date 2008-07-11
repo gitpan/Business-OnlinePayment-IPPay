@@ -10,15 +10,6 @@ IPPay Merchant Services: http://www.ippay.com
 
 This module implements the IPPay XML Product Specification Revision 1.1.2
 
-
-
-
-You will need to set the server and path options or all your transactions
-will go to the test server.
-
-
-
-
 Jeff Finucane is the original author.  Please send patches as unified
 diffs (diff -u).  Mr. Kohles and Mr. Kohler provided material for cribbing.
 

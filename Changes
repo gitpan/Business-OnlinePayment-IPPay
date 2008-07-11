@@ -1,5 +1,11 @@
 Revision history for Perl extension Business::OnlinePayment::IPPay.
 
+0.03  Sun Jul 10 21:00:58 2008 EDT
+	- require Business::OnlinePayment::HTTPS 0.09
+	- remove unnecessary requirements
+	- ensure transaction id and transaction are from the same server
+	- more debugging info
+
 0.02  Sun Jul  3 17:44:08 2008 PDT
 	- add live default server;
 	- send billing address as shipping address for card transactions
