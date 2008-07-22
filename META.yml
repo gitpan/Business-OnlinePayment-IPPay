@@ -1,12 +1,13 @@
 # http://module-build.sourceforge.net/META-spec.html
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         Business-OnlinePayment-IPPay
-version:      0.03
+version:      0.04
 version_from: IPPay.pm
 installdirs:  site
 requires:
     Business::OnlinePayment:       3
     Business::OnlinePayment::HTTPS: 0.09
+    Locale::Country:               2
     Test::More:                    0.42
     Tie::IxHash:                   0
     XML::Simple:                   0

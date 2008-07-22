@@ -5,12 +5,13 @@ use Carp;
 use Tie::IxHash;
 use XML::Simple;
 use XML::Writer;
+use Locale::Country;
 use Business::OnlinePayment;
 use Business::OnlinePayment::HTTPS;
 use vars qw($VERSION $DEBUG @ISA $me);
 
 @ISA = qw(Business::OnlinePayment::HTTPS);
-$VERSION = '0.03';
+$VERSION = '0.04';
 $DEBUG = 0;
 $me = 'Business::OnlinePayment::IPPay';
 
@@ -222,6 +223,27 @@ sub submit {
   my $terminalid = $content{login} if $type eq 'CC';
   my $merchantid = $content{login} if $type eq 'ECHECK';
 
+  my $country = country2code( $content{country}, LOCALE_CODE_ALPHA_3 );
+  $country  = country_code2code( $content{country},
+                                 LOCALE_CODE_ALPHA_2,
+                                 LOCALE_CODE_ALPHA_3
+                               )
+    unless $country;
+  $country = $content{country}
+    unless $country;
+  $country = uc($country) if $country;
+
+  my $ship_country =
+    country2code( $content{ship_country}, LOCALE_CODE_ALPHA_3 );
+  $ship_country  = country_code2code( $content{ship_country},
+                                 LOCALE_CODE_ALPHA_2,
+                                 LOCALE_CODE_ALPHA_3
+                               )
+    unless $ship_country;
+  $ship_country = $content{ship_country}
+    unless $ship_country;
+  $ship_country = uc($ship_country) if $ship_country;
+
   tie my %ach, 'Tie::IxHash',
     $self->revmap_fields(
                           #AccountType         => 'account_type',
@@ -240,7 +262,7 @@ sub submit {
                           Address             => 'ship_address',
                           City                => 'ship_city',
                           StateProv           => 'ship_state',
-                          Country             => 'ship_country',
+                          Country             => \$ship_country,
                           Phone               => 'ship_phone',
                         );
 
@@ -250,7 +272,7 @@ sub submit {
                             Address             => 'address',
                             City                => 'city',
                             StateProv           => 'state',
-                            Country             => 'country',
+                            Country             => \$country,
                             Phone               => 'phone',
                           );
   }
@@ -295,7 +317,7 @@ sub submit {
                           BillingCity         => 'city',
                           BillingStateProv    => 'state',
                           BillingPostalCode   => 'zip',
-                          BillingCountry      => 'country',
+                          BillingCountry      => \$country,
                           BillingPhone        => 'phone',
                           Email               => 'email',
                           UserIPAddr          => 'customer_ip',
@@ -493,7 +515,7 @@ from content(%content):
       BillingCity         => 'city',
       BillingStateProv    => 'state',
       BillingPostalCode   => 'zip',
-      BillingCountry      => 'country',
+      BillingCountry      => 'country',           # forced to ISO-3166-alpha-3
       BillingPhone        => 'phone',
       Email               => 'email',
       UserIPAddr          => 'customer_ip',
@@ -512,7 +534,7 @@ from content(%content):
           Address             => 'ship_address',
           City                => 'ship_city',
           StateProv           => 'ship_state',
-          Country             => 'ship_country',
+          Country             => 'ship_country',  # forced to ISO-3166-alpha-3
           Phone               => 'ship_phone',
 
 =head1 NOTE

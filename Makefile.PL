@@ -5,6 +5,7 @@ WriteMakefile(
     'AUTHOR'       => 'Jeff Finucane <ippay@weasellips.com>',
     'PREREQ_PM'    => { 'Business::OnlinePayment' => 3,
                         'Business::OnlinePayment::HTTPS' => 0.09,
+                        'Locale::Country'         => 2,
 			'Test::More'              => 0.42,
                         'Tie::IxHash'             => 0,
                         'XML::Simple'             => 0,

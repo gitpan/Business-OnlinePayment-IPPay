@@ -25,6 +25,7 @@ my %content = (
     city           => 'Anywhere',
     state          => 'UT',
     zip            => '84058',
+    country        => 'US',      # will be forced to USA
     customer_id    => 'tfb',
 );
 
