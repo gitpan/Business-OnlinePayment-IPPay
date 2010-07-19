@@ -11,9 +11,34 @@ use Business::OnlinePayment::HTTPS;
 use vars qw($VERSION $DEBUG @ISA $me);
 
 @ISA = qw(Business::OnlinePayment::HTTPS);
-$VERSION = '0.04';
+$VERSION = '0.05_02';
+$VERSION = eval $VERSION; # modperlstyle: convert the string into a number
+
 $DEBUG = 0;
 $me = 'Business::OnlinePayment::IPPay';
+
+sub _info {
+  {
+    'info_version'          => '0.01',
+    'module_version'        => $VERSION,
+    'supported_types'       => [ qw( CC ECHECK ) ],
+    'supported_actions'     => { 'CC' => [
+                                     'Normal Authorization',
+                                     'Authorization Only',
+                                     'Post Authorization',
+                                     'Void',
+                                     'Credit',
+                                   ],
+                                   'ECHECK' => [
+                                     'Normal Authorization',
+                                     'Void',
+                                     'Credit',
+                                   ],
+                                 },
+    'CC_void_requires_card' => 1,
+    'ECHECK_void_requires_account' => 1,
+  };
+}
 
 sub set_defaults {
     my $self = shift;
@@ -188,6 +213,14 @@ sub submit {
 
   $self->required_fields(@required_fields);
 
+  #quick validation because ippay dumps an error indecipherable to the end user
+  if (grep { /^routing_code$/ } @required_fields) {
+    unless( $content{routing_code} =~ /^\d{9}$/ ) {
+      $self->_error_response('Invalid routing code');
+      return;
+    }
+  }
+
   if ($self->test_transaction()) {
     $self->server('test1.jetpay.com');
     $self->port('443');
@@ -276,6 +309,7 @@ sub submit {
                             Phone               => 'phone',
                           );
   }
+  delete $shippingaddr{Country} unless $shippingaddr{Country};
 
   tie my %shippinginfo, 'Tie::IxHash',
     $self->revmap_fields(
@@ -329,6 +363,7 @@ sub submit {
                           IndustryInfo        => \%industryinfo,
                           ShippingInfo        => \%shippinginfo,
                         );
+  delete $req{BillingCountry} unless $req{BillingCountry};
 
   my $post_data;
   my $writer = new XML::Writer( OUTPUT      => \$post_data,
@@ -383,6 +418,17 @@ sub submit {
 
 }
 
+sub _error_response {
+  my ($self, $error_message) = (shift, shift);
+  $self->result_code('');
+  $self->order_number('');
+  $self->authorization('');
+  $self->cvv2_response('');
+  $self->avs_code('');
+  $self->is_success( 0);
+  $self->error_message($error_message);
+}
+
 sub _xmlwrite {
   my ($self, $writer, $item, $value) = @_;
   $writer->startTag($item);
@@ -397,6 +443,7 @@ sub _xmlwrite {
 }
 
 1;
+
 __END__
 
 =head1 NAME

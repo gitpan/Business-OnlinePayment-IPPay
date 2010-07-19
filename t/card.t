@@ -44,7 +44,8 @@ my $voidable_amount = 0;
     result_code   => '000',
     error_message => 'APPROVED',
     authorization => qr/TEST\d{2}/,
-    avs_code      => 'U',          # so rather pointless :\
+#    avs_code      => 'U',          # so rather pointless :\
+    avs_code      => 'Y',          # so very pointless :\
     cvv2_response => 'P',          # ...
   );
   $voidable = $tx->order_number if $tx->is_success;
@@ -79,7 +80,8 @@ my $voidable_amount = 0;
     result_code   => '000',
     error_message => 'APPROVED',
     authorization => qr/TEST\d{2}/,
-    avs_code      => 'U',          # so rather pointless :\
+#    avs_code      => 'U',          # so rather pointless :\
+    avs_code      => 'Y',          # so very pointless :\
     cvv2_response => 'P',          # ...
   );
   $postable = $tx->order_number if $tx->is_success;

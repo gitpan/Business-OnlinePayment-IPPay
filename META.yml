@@ -1,17 +1,28 @@
-# http://module-build.sourceforge.net/META-spec.html
-#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
-name:         Business-OnlinePayment-IPPay
-version:      0.04
-version_from: IPPay.pm
-installdirs:  site
+--- #YAML:1.0
+name:               Business-OnlinePayment-IPPay
+version:            0.05_02
+abstract:           ~
+author:
+    - Jeff Finucane <ippay@weasellips.com>
+license:            unknown
+distribution_type:  module
+configure_requires:
+    ExtUtils::MakeMaker:  0
+build_requires:
+    ExtUtils::MakeMaker:  0
 requires:
-    Business::OnlinePayment:       3
-    Business::OnlinePayment::HTTPS: 0.09
-    Locale::Country:               2
-    Test::More:                    0.42
-    Tie::IxHash:                   0
-    XML::Simple:                   0
-    XML::Writer:                   0
-
-distribution_type: module
-generated_by: ExtUtils::MakeMaker version 6.17
+    Business::OnlinePayment:  3
+    Business::OnlinePayment::HTTPS:  0.09
+    Locale::Country:      2
+    Test::More:           0.42
+    Tie::IxHash:          0
+    XML::Simple:          0
+    XML::Writer:          0
+no_index:
+    directory:
+        - t
+        - inc
+generated_by:       ExtUtils::MakeMaker version 6.56
+meta-spec:
+    url:      http://module-build.sourceforge.net/META-spec-v1.4.html
+    version:  1.4

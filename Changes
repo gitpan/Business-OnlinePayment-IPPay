@@ -1,5 +1,11 @@
 Revision history for Perl extension Business::OnlinePayment::IPPay.
 
+0.05  Mon Jul 19 10:19:34 EDT 2010
+        - add introspection info used in Business::OnlinePayment 3.01+
+        - (0.05_02) add ECHECK_void_requires_account to introspection info
+        - add a quick routing_code validation for a better error message
+        - never send an empty country for shipping or billing address
+
 0.04  Tue Jul 22 12:19:54 2008 EDT
 	- force country and ship country to ISA-3166-alpha-3
 

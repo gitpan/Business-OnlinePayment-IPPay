@@ -7,4 +7,5 @@ t/00load.t
 t/card.t
 t/check.t
 t/bop.t
+t/introspection.t
 META.yml                                 Module meta-data (added by MakeMaker)
