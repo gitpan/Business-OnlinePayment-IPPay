@@ -1,9 +1,9 @@
 #!/usr/bin/perl -w
 
 use Test::More;
+require "t/lib/test_account.pl";
 
-my($login, $password, @opts) = ('TESTMERCHANT', '',
-                                'default_Origin' => 'RECURRING' );
+my($login, $password, %opt) = test_account_or_skip('card');
 plan tests => 43;
   
 use_ok 'Business::OnlinePayment';
@@ -35,7 +35,7 @@ my $voidable_amount = 0;
 
 # valid card number test
 {
-  my $tx = Business::OnlinePayment->new("IPPay", @opts);
+  my $tx = Business::OnlinePayment->new("IPPay", %opt);
   $tx->content(%content);
   tx_check(
     $tx,
@@ -55,7 +55,7 @@ my $voidable_amount = 0;
 
 # invalid card number test
 {
-  my $tx = Business::OnlinePayment->new("IPPay", @opts);
+  my $tx = Business::OnlinePayment->new("IPPay", %opt);
   $tx->content(%content, card_number => "4111111111111112" );
   tx_check(
     $tx,
@@ -71,7 +71,7 @@ my $voidable_amount = 0;
 
 # authorization only test
 {
-  my $tx = Business::OnlinePayment->new("IPPay", @opts);
+  my $tx = Business::OnlinePayment->new("IPPay", %opt);
   $tx->content(%content, action => 'authorization only',  amount => '3.00' );
   tx_check(
     $tx,
@@ -91,7 +91,7 @@ my $voidable_amount = 0;
 
 # post authorization test
 SKIP: {
-  my $tx = new Business::OnlinePayment( "IPPay", %opts );
+  my $tx = new Business::OnlinePayment( "IPPay", %opt );
   $tx->content( %content, 'action'       => "post authorization", 
                           'amount'       => $postable_amount,    # not required
                           'order_number' => $postable,
@@ -110,7 +110,7 @@ SKIP: {
 
 # void test
 SKIP: {
-  my $tx = new Business::OnlinePayment( "IPPay", %opts );
+  my $tx = new Business::OnlinePayment( "IPPay", %opt );
   $tx->content( %content, 'action' => "Void",
                           'order_number' => $voidable,
                           'authorization' => $voidable_auth,
@@ -129,7 +129,7 @@ SKIP: {
 
 # credit test
 SKIP: {
-  my $tx = new Business::OnlinePayment( "IPPay", %opts );
+  my $tx = new Business::OnlinePayment( "IPPay", %opt );
   $tx->content( %content, 'action' => "credit");
   tx_check(
     $tx,
@@ -178,10 +178,3 @@ sub tx_info {
     );
 }
 
-sub expiration_date {
-    my($month, $year) = (localtime)[4,5];
-    $year++;       # So we expire next year.
-    $year %= 100;  # y2k?  What's that?
-
-    return sprintf("%02d/%02d", $month, $year);
-}

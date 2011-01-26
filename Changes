@@ -1,5 +1,8 @@
 Revision history for Perl extension Business::OnlinePayment::IPPay.
 
+0.06  Wed Jan 26 13:15:21 PST 2011
+        - fix january bug in tests
+
 0.05  Mon Jul 19 10:19:34 EDT 2010
         - add introspection info used in Business::OnlinePayment 3.01+
         - (0.05_02) add ECHECK_void_requires_account to introspection info

@@ -1,8 +1,9 @@
 #!/usr/bin/perl -w
 
 use Test::More;
+require "t/lib/test_account.pl";
 
-my($login, $password, %opt) = ('TESTMERCHANT', '', 'Origin' => 'RECURRING' );
+my($login, $password, %opt) = test_account_or_skip('check');
 plan tests => 16;
 
 use_ok 'Business::OnlinePayment';
