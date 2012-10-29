@@ -11,7 +11,7 @@ use Business::OnlinePayment::HTTPS;
 use vars qw($VERSION $DEBUG @ISA $me);
 
 @ISA = qw(Business::OnlinePayment::HTTPS);
-$VERSION = '0.06';
+$VERSION = '0.07';
 $VERSION = eval $VERSION; # modperlstyle: convert the string into a number
 
 $DEBUG = 0;
@@ -28,6 +28,7 @@ sub _info {
                                      'Post Authorization',
                                      'Void',
                                      'Credit',
+                                     'Reverse Authorization',
                                    ],
                                    'ECHECK' => [
                                      'Normal Authorization',
@@ -45,9 +46,9 @@ sub set_defaults {
     my %opts = @_;
 
     # standard B::OP methods/data
-    $self->server('gateway17.jetpay.com') unless $self->server;
+    $self->server('gtwy.ippay.com') unless $self->server;
     $self->port('443') unless $self->port;
-    $self->path('/jetpay') unless $self->path;
+    $self->path('/ippay') unless $self->path;
 
     $self->build_subs(qw( order_number avs_code cvv2_response
                           response_page response_code response_headers
@@ -89,6 +90,7 @@ sub map_fields {
       ( 'normal authorization'            => 'SALE',
         'authorization only'              => 'AUTHONLY',
         'post authorization'              => 'CAPT',
+        'reverse authorization'           => 'REVERSEAUTH',
         'void'                            => 'VOID',
         'credit'                          => 'CREDIT',
       );
@@ -97,20 +99,21 @@ sub map_fields {
         'void'                            => 'VOIDACH',
         'credit'                          => 'REVERSAL',
       );
+
     if ($self->transaction_type eq 'CC') {
       $content{'TransactionType'} = $actions{$action} || $action;
-    }elsif ($self->transaction_type eq 'ECHECK') {
+    } elsif ($self->transaction_type eq 'ECHECK') {
+
       $content{'TransactionType'} = $check_actions{$action} || $action;
+
+      # ACCOUNT TYPE MAP
+      my %account_types = ('personal checking'   => 'Checking',
+                           'personal savings'    => 'Savings',
+                           'business checking'   => 'BusinessCk',
+                          );
+      $content{'account_type'} = $account_types{lc($content{'account_type'})}
+                                 || $content{'account_type'};
     }
-
-
-    # ACCOUNT TYPE MAP
-    my %account_types = ('personal checking'   => 'Checking',
-                         'personal savings'    => 'Savings',
-                         'business checking'   => 'BusinessCk',
-                        );
-    $content{'account_type'} = $account_types{lc($content{'account_type'})}
-                               || $content{'account_type'};
 
     $content{Origin} = 'RECURRING' 
       if ($content{recurring_billing} &&$content{recurring_billing} eq 'YES' );
@@ -189,6 +192,8 @@ sub submit {
         
   }elsif ( $action eq 'post authorization' && $type eq 'CC') {
     push @required_fields, qw( order_number );
+  }elsif ( $action eq 'reverse authorization' && $type eq 'CC') {
+    push @required_fields, qw( order_number card_number expiration amount );
   }elsif ( $action eq 'void') {
     push @required_fields, qw( order_number amount );
 
@@ -209,6 +214,9 @@ sub submit {
   foreach ( keys ( %{($self->{_defaults})} ) ) {
     $content{$_} = $self->{_defaults}->{$_} unless exists($content{$_});
   }
+  if ($self->test_transaction()) {
+    $content{'login'} = 'TESTTERMINAL';
+  }
   $self->content(%content);
 
   $self->required_fields(@required_fields);
@@ -219,12 +227,6 @@ sub submit {
       $self->_error_response('Invalid routing code');
       return;
     }
-  }
-
-  if ($self->test_transaction()) {
-    $self->server('test1.jetpay.com');
-    $self->port('443');
-    $self->path('/jetpay');
   }
 
   my $transaction_id = $content{'order_number'};
@@ -391,7 +393,7 @@ sub submit {
     if (  exists($response->{ActionCode}) && !exists($response->{ErrMsg})) {
       $self->error_message($response->{ResponseText});
     }else{
-      $self->error_message($response->{Errmsg});
+      $self->error_message($response->{ErrMsg});
     }
 #  }else{
 #    $self->error_message("Server Failed");
@@ -521,6 +523,7 @@ The following actions are valid
 
   normal authorization
   authorization only
+  reverse authorization
   post authorization
   credit
   void
@@ -588,14 +591,20 @@ from content(%content):
 
 =head1 COMPATIBILITY
 
+Version 0.07 changes the server name and path for IPPay's late 2012 update.
+
 Business::OnlinePayment::IPPay uses IPPay XML Product Specifications version
 1.1.2.
 
 See http://www.ippay.com/ for more information.
 
-=head1 AUTHOR
+=head1 AUTHORS
 
-Jeff Finucane, ippay@weasellips.com
+Original author: Jeff Finucane
+
+Current maintainer: Ivan Kohler <ivan-ippay@freeside.biz>
+
+Reverse Authorization patch from dougforpres
 
 =head1 SEE ALSO
 

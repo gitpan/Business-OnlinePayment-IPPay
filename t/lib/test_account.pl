@@ -12,7 +12,7 @@ sub test_account_or_skip {
 sub test_account {
     my $suffix = shift || 'card';
 
-    my($login, $password) = ('TESTMERCHANT', '');
+    my($login, $password) = ('TESTTERMINAL', '');
 
     my %opt;
     if ( $suffix eq 'check ' ) {

@@ -4,7 +4,7 @@ use Test::More;
 require "t/lib/test_account.pl";
 
 my($login, $password, %opt) = test_account_or_skip('card');
-plan tests => 43;
+plan tests => 50;
   
 use_ok 'Business::OnlinePayment';
 
@@ -61,8 +61,8 @@ my $voidable_amount = 0;
     $tx,
     desc          => "invalid card_number",
     is_success    => 0,
-    result_code   => '912',
-    error_message => 'INVALID CARD NUMBER',
+    result_code   => '900', #'912' with old jetpay gw
+    error_message => 'Invalid card number.  ', #'INVALID CARD NUMBER' w/old gw
     authorization => qr/^$/,
     avs_code      => '',           # so rather pointless :\
     cvv2_response => '',           # ...
@@ -87,6 +87,34 @@ my $voidable_amount = 0;
   $postable = $tx->order_number if $tx->is_success;
   $postable_auth = $tx->authorization if $tx->is_success;
   $postable_amount = $content{amount} if $tx->is_success;
+}
+
+# authorization void test
+{
+  my $tx = Business::OnlinePayment->new("IPPay", %opt);
+  $tx->content(%content, action => 'authorization only',  amount => '3.00' );
+  $tx->test_transaction(1);
+  $tx->submit;
+
+  if ($tx->is_success) {
+    my $void_tx = Business::OnlinePayment->new("IPPay", %opt );
+
+    $tx->content(%content, action       => 'reverse authorization',
+                           order_number => $tx->order_number );
+    tx_check(
+      $tx,
+      desc          => "reverse authorization",
+      is_success    => 1,
+      result_code   => '000',
+      error_message => 'APPROVED',
+      authorization => qr/TEST\d{2}/,
+      avs_code      => '',          # so rather pointless :\
+      cvv2_response => '',          # ...
+    );
+  }
+  else {
+    
+  }
 }
 
 # post authorization test

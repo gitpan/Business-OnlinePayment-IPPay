@@ -2,7 +2,7 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
     'NAME'         => 'Business::OnlinePayment::IPPay',
     'VERSION_FROM' => 'IPPay.pm', # finds $VERSION
-    'AUTHOR'       => 'Jeff Finucane <ippay@weasellips.com>',
+    'AUTHOR'       => 'Ivan Kohler <ivan-ippay@freeside.biz>',
     'PREREQ_PM'    => { 'Business::OnlinePayment' => 3,
                         'Business::OnlinePayment::HTTPS' => 0.09,
                         'Locale::Country'         => 2,

@@ -1,5 +1,10 @@
 Revision history for Perl extension Business::OnlinePayment::IPPay.
 
+0.07  Sun Oct 28 23:24:21 PDT 2012
+        - add Reverse Authorization support, patch from dougforpres
+        - gateway URL change -- note this version will be the minimum required
+          once IPPay turns off the old URL
+
 0.06  Wed Jan 26 13:15:21 PST 2011
         - fix january bug in tests
 
