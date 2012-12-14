@@ -11,7 +11,7 @@ use Business::OnlinePayment::HTTPS;
 use vars qw($VERSION $DEBUG @ISA $me);
 
 @ISA = qw(Business::OnlinePayment::HTTPS);
-$VERSION = '0.07';
+$VERSION = '0.08';
 $VERSION = eval $VERSION; # modperlstyle: convert the string into a number
 
 $DEBUG = 0;
@@ -107,9 +107,13 @@ sub map_fields {
       $content{'TransactionType'} = $check_actions{$action} || $action;
 
       # ACCOUNT TYPE MAP
-      my %account_types = ('personal checking'   => 'Checking',
-                           'personal savings'    => 'Savings',
-                           'business checking'   => 'BusinessCk',
+      my %account_types = ('personal checking'   => 'CHECKING',
+                           'personal savings'    => 'SAVINGS',
+                           'business checking'   => 'CHECKING',
+                           'business savings'    => 'SAVINGS',
+                           #not technically B:OP valid i guess?
+                           'checking'            => 'CHECKING',
+                           'savings'             => 'SAVINGS',
                           );
       $content{'account_type'} = $account_types{lc($content{'account_type'})}
                                  || $content{'account_type'};
@@ -281,6 +285,8 @@ sub submit {
 
   tie my %ach, 'Tie::IxHash',
     $self->revmap_fields(
+                          #wtf, this is a "Type"" attribute of the ACH element,
+                          # not a child element like the others
                           #AccountType         => 'account_type',
                           AccountNumber       => 'account_number',
                           ABA                 => 'routing_code',
@@ -433,7 +439,16 @@ sub _error_response {
 
 sub _xmlwrite {
   my ($self, $writer, $item, $value) = @_;
-  $writer->startTag($item);
+
+  my %att = ();
+  if ( $item eq 'ACH' ) {
+    $att{'Type'} = $self->{_content}->{'account_type'}
+      if $self->{_content}->{'account_type'}; #necessary so we don't pass empty?
+    $att{'SEC'}  = 'PPD';
+  }
+
+  $writer->startTag($item, %att);
+
   if ( ref( $value ) eq 'HASH' ) {
     foreach ( keys ( %$value ) ) {
       $self->_xmlwrite($writer, $_, $value->{$_});
@@ -441,6 +456,7 @@ sub _xmlwrite {
   }else{
     $writer->characters($value);
   }
+
   $writer->endTag($item);
 }
 

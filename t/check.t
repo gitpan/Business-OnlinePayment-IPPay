@@ -19,7 +19,7 @@ my %content = (
     account_number => '12345',
     routing_code   => '111000025',  # BoA in Texas taken from Wikipedia
     bank_name      => 'First National Test Bank',
-    account_type   => 'Checking',
+    account_type   => 'Business Checking',
 );
 
 my $voidable;
