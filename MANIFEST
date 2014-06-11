@@ -10,3 +10,4 @@ t/bop.t
 t/introspection.t
 t/lib/test_account.pl
 META.yml                                 Module meta-data (added by MakeMaker)
+META.json                                Module JSON meta-data (added by MakeMaker)

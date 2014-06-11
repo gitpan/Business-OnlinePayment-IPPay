@@ -1,5 +1,12 @@
 Revision history for Perl extension Business::OnlinePayment::IPPay.
 
+0.09  Tue Jun 10 23:26:54 PDT 2014
+        - Set UDField3 per IPPay request
+        - Require password
+        - When IPPay returns a non-sensical response, don't include it in the
+          error message unless debug is on
+        - Correct introspection: info_compat, not info_version
+
 0.08  Fri Dec 14 12:54:14 PST 2012
         - Pass ACH account type
 

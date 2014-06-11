@@ -4,7 +4,7 @@ use Test::More;
 require "t/lib/test_account.pl";
 
 my($login, $password, %opt) = test_account_or_skip('check');
-plan tests => 16;
+plan tests => 11;
 
 use_ok 'Business::OnlinePayment';
 
@@ -40,19 +40,20 @@ my $voidable;
   $voidable = $ctx->order_number if $ctx->is_success;
 }
 
-#check void test
-{
-  my $ctx = Business::OnlinePayment->new("IPPay", %opt);
-  $ctx->content(%content, action => 'void', order_number => $voidable);
-  tx_check(
-    $ctx,
-    desc          => 'ACH void transaction',
-    is_success    => 1,
-    result_code   => '000',
-    error_message => 'CHECK ACCEPTED',
-    authorization => qr/^000000$/,
-  );
-}
+#VOIDACH transactions are no longer supported.  Please contact support@ippay.com for questions.
+##check void test
+#{
+#  my $ctx = Business::OnlinePayment->new("IPPay", %opt);
+#  $ctx->content(%content, action => 'void', order_number => $voidable);
+#  tx_check(
+#    $ctx,
+#    desc          => 'ACH void transaction',
+#    is_success    => 1,
+#    result_code   => '000',
+#    error_message => 'CHECK ACCEPTED',
+#    authorization => qr/^000000$/,
+#  );
+#}
 
 #check credit test
 {

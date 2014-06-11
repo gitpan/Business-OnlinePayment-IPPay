@@ -11,7 +11,7 @@ use Business::OnlinePayment::HTTPS;
 use vars qw($VERSION $DEBUG @ISA $me);
 
 @ISA = qw(Business::OnlinePayment::HTTPS);
-$VERSION = '0.08';
+$VERSION = '0.09';
 $VERSION = eval $VERSION; # modperlstyle: convert the string into a number
 
 $DEBUG = 0;
@@ -19,7 +19,7 @@ $me = 'Business::OnlinePayment::IPPay';
 
 sub _info {
   {
-    'info_version'          => '0.01',
+    'info_compat'           => '0.01',
     'module_version'        => $VERSION,
     'supported_types'       => [ qw( CC ECHECK ) ],
     'supported_actions'     => { 'CC' => [
@@ -54,12 +54,9 @@ sub set_defaults {
                           response_page response_code response_headers
                      ));
 
-    # module specific data
-    if ( $opts{debug} ) {
-        $self->debug( $opts{debug} );
-        delete $opts{debug};
-    }
+    $DEBUG = exists($opts{debug}) ? $opts{debug} : 0;
 
+    # module specific data
     my %_defaults = ();
     foreach my $key (keys %opts) {
       $key =~ /^default_(\w*)$/ or next;
@@ -177,7 +174,7 @@ sub submit {
   $self->is_success(0);
   $self->map_fields();
 
-  my @required_fields = qw(action login type);
+  my @required_fields = qw(action login password type);
 
   my $action = lc($self->{_content}->{action});
   my $type = $self->transaction_type();
@@ -240,7 +237,7 @@ sub submit {
          "(HTTPS headers: ".
          join(", ", map { "$_ => ". $headers{$_} } keys %headers ). ") ".
          "(Raw HTTPS content: $page)"
-      if $DEBUG;
+      if $DEBUG > 1;
     return unless $server_response=~ /^200/;
     $transaction_id = $page;
   }
@@ -366,7 +363,7 @@ sub submit {
                           UserHost            => 'UserHost',
                           UDField1            => 'UDField1',
                           UDField2            => 'UDField2',
-                          UDField3            => 'UDField3',
+                          UDField3            => \"$me $VERSION", #'UDField3',
                           ActionCode          => 'ActionCode',
                           IndustryInfo        => \%industryinfo,
                           ShippingInfo        => \%shippinginfo,
@@ -387,11 +384,11 @@ sub submit {
   $writer->endTag('JetPay');
   $writer->end();
 
-  warn "$post_data\n" if $DEBUG;
+  warn "$post_data\n" if $DEBUG > 1;
 
   my ($page,$server_response,%headers) = $self->https_post($post_data);
 
-  warn "$page\n" if $DEBUG;
+  warn "$page\n" if $DEBUG > 1;
 
   my $response = {};
   if ($server_response =~ /^200/){
@@ -414,13 +411,20 @@ sub submit {
   $self->is_success($self->result_code() eq '000' ? 1 : 0);
 
   unless ($self->is_success()) {
-    unless ( $self->error_message() ) { #additional logging information
-      $self->error_message(
-        "(HTTPS response: $server_response) ".
-        "(HTTPS headers: ".
-          join(", ", map { "$_ => ". $headers{$_} } keys %headers ). ") ".
-        "(Raw HTTPS content: $page)"
-      );
+    unless ( $self->error_message() ) {
+      if ( $DEBUG ) {
+        #additional logging information, possibly too sensitive for an error msg
+        # (IPPay seems to have a failure mode where they return the full
+        #  original request including card number)
+        $self->error_message(
+          "(HTTPS response: $server_response) ".
+          "(HTTPS headers: ".
+            join(", ", map { "$_ => ". $headers{$_} } keys %headers ). ") ".
+          "(Raw HTTPS content: $page)"
+        );
+      } else {
+        $self->error_message('No ResponseText or ErrMsg was returned by IPPay (enable debugging for raw HTTPS response)');
+      }
     }
   }
 
@@ -588,7 +592,6 @@ from content(%content):
       UserHost            => 'UserHost',
       UDField1            => 'UDField1',
       UDField2            => 'UDField2',
-      UDField3            => 'UDField3',
       ActionCode          => 'ActionCode',
       IndustryInfo
         Type                => 'IndustryInfo',
@@ -621,6 +624,15 @@ Original author: Jeff Finucane
 Current maintainer: Ivan Kohler <ivan-ippay@freeside.biz>
 
 Reverse Authorization patch from dougforpres
+
+=head1 ADVERTISEMENT
+
+Need a complete, open-source back-office and customer self-service solution?
+The Freeside software includes support for credit card and electronic check
+processing with IPPay and over 50 other gateways, invoicing, integrated
+trouble ticketing, and customer signup and self-service web interfaces.
+
+http://freeside.biz/freeside/
 
 =head1 SEE ALSO
 
